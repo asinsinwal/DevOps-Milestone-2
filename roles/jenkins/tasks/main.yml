@@ -1,0 +1,180 @@
+# - name: Install packages and dependencies
+#   apt: name=openjdk-8-jdk update_cache=yes state=installed
+
+# Install
+
+# - name: Fetch GIT_USERNAME from environment variables
+#   set_fact: git_username="{{ lookup('env','GIT_USERNAME') }}"
+
+# - name: Fetch GIT_PASSWORD from environment variables
+#   set_fact: git_password="{{ lookup('env','GIT_PASSWORD') }}"
+
+# - name: Set the python interpreter back to version 3
+#   set_fact:
+#     ansible_python_interpreter: '/usr/bin/python3'
+
+# 1. Java to sources
+- name: Adding openjdk 8 to sources
+  apt_repository:
+    repo: ppa:openjdk-r/ppa
+    state: present
+  register: jdk
+
+# 2. Updating apt-get
+- name: Run the equivalent of "apt-get update" as a separate step
+  apt: update_cache=yes
+  when: jdk.changed
+
+# 3. Install Java
+- name: Install Java jdk
+  apt: pkg=openjdk-8-jdk state=present
+  when: jdk.changed
+
+# 5. Install Mysql and dependencies
+- name: Installing mysql and other dependencies
+  apt: name={{ item }} state=present
+  with_items:
+    - mysql-server
+    - libmysql-java
+    - mysql-workbench
+  register: mysql_installation
+  # become: yes
+
+# - name: Add the Jenkins public GPG key to the apt repo
+#   apt_key: url=https://pkg.jenkins.io/debian/jenkins-ci.org.key
+#            state=present
+
+- name: Add the Jenkins public GPG key to the apt repo
+  apt_key: url=http://pkg.jenkins-ci.org/debian-stable/jenkins-ci.org.key
+           state=present
+
+# - name: Add Jenkins to the trusted sources list
+#   apt_repository: repo='deb http://pkg.jenkins.io/debian-stable binary/'
+#                   update_cache=yes
+#                   state=present
+
+- name: Add Jenkins to the trusted sources list
+  apt_repository: repo='deb http://pkg.jenkins-ci.org/debian-stable binary/'
+                  update_cache=yes
+                  state=present
+
+- name: Install Jenkins server
+  apt: name=jenkins state=installed
+
+# Configure Jenkins init settings.
+- include: configure_jenkins.yml
+
+# Make sure Jenkins starts, then configure Jenkins.
+- name: Ensure Jenkins starts
+  service: name=jenkins state=started enabled=yes
+  
+
+- name: Wait for Jenkins to load
+  shell: "curl -D - --silent --max-time 5 http://{{ jenkins_hostname }}:{{ jenkins_http_port }}{{ jenkins_url_prefix }}/cli/"
+  register: result
+  until: (result.stdout.find("403 Forbidden") != -1) or (result.stdout.find("200 OK") != -1) and (result.stdout.find("Please wait while") == -1)
+  retries: 60
+  delay: 5
+  changed_when: false
+  check_mode: no
+
+- name: Get the jenkins-cli jarfile from the Jenkins server.
+  get_url:
+    url: "http://{{ jenkins_hostname }}:{{ jenkins_http_port }}{{ jenkins_url_prefix }}/jnlpJars/jenkins-cli.jar"
+    dest: "{{ jenkins_jar_location }}"
+  register: jarfile_get
+  until: "'OK' in jarfile_get.msg or 'file already exists' in jarfile_get.msg"
+  retries: 5
+  delay: 10
+  check_mode: no
+
+- name: Install jenkins plugin
+  jenkins_plugin:
+    name: "{{item}}"
+  with_items:
+    - git
+    - nodejs
+    - jacoco
+    - postbuild-task
+  register: plugin_installation
+
+- name: restart jenkins
+  service: name=jenkins state=restarted
+  when: plugin_installation.changed
+
+- name: Wait for Jenkins to load
+  shell: "curl -D - --silent --max-time 5 http://{{ jenkins_hostname }}:{{ jenkins_http_port }}{{ jenkins_url_prefix }}/cli/"
+  register: result
+  until: (result.stdout.find("403 Forbidden") != -1) or (result.stdout.find("200 OK") != -1) and (result.stdout.find("Please wait while") == -1)
+  retries: 60
+  delay: 5
+  changed_when: false
+  check_mode: no
+
+- name: Send template files {{jenkins_build_jobs}} to remote
+  template:
+    src: "{{item.xml_name}}"
+    dest: "{{ jenkins_home }}/{{item.xml_name}}"
+  with_items: "{{jenkins_build_jobs}}"
+
+- name: Send credential file {{jenkins_credential_data.jinja_name}} to remote
+  template:
+    src: "{{jenkins_credential_data.jinja_name}}"
+    dest: "{{ jenkins_home }}/{{jenkins_credential_data.xml_name}}"
+
+- name: Checking Credentials In Jenkins
+  become: true
+  shell: "java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }} get-credentials-as-xml system::system::jenkins _ credential_id"
+  register: git_creds
+  ignore_errors: yes
+  changed_when: "git_creds.stdout.find('credential_id') == -1"
+
+- name: Create Credentials
+  shell: "cat {{ jenkins_home }}/{{jenkins_credential_data.xml_name}} | java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }}  create-credentials-by-xml system::system::jenkins _"
+  when: "git_creds.stdout.find('credential_id') == -1"
+
+# - name: Install python-pip
+#   apt: name=python-pip update_cache=yes state=installed
+
+- name: Install python-pip
+  apt: name=python-pip state=present
+
+# - name: Install libxml2
+#   apt: name=libxml2 update_cache=yes state=installed
+
+- name: Install python-lxml
+  apt: name=python-lxml state=installed
+
+# # Install lxml
+# - name: Install lxml
+#   pip:
+#     name: lxml
+
+# - debug:
+#     msg: "{{ ansible_python_interpreter }}"
+
+# Install python-jenkins
+- name: Install python-jenkins
+  pip:
+    name: python-jenkins
+
+- jenkins_job:
+    config: "{{ lookup('file', 'templates/{{item.xml_name}}') }}"
+    name: "{{item.name}}"
+    url: http://{{ jenkins_hostname }}:{{ jenkins_http_port }}
+  with_items: "{{jenkins_build_jobs}}"
+
+- name: Install npm
+  apt: name=npm state=installed
+
+- name: Add Jenkins to sudoers
+  lineinfile:
+    path: /etc/sudoers
+    state: present
+    line: 'jenkins ALL=(ALL) NOPASSWD: ALL'
+
+- name: Install maven
+  apt: name=maven state=installed
+
+- name: Install sshpass
+  apt: name=sshpass state=installed

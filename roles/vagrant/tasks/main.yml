@@ -1,0 +1,66 @@
+- name: Install packages
+  apt:
+    pkg: "{{ item }}"
+    state: present
+  with_items: "{{ base_packages }}"
+  become: yes
+
+- name: Add virtualbox repo
+  lineinfile:
+    path: /etc/apt/sources.list
+    line: '{{ vbox_download_path }}'
+    state: present
+  become: yes
+
+- name: Add apt-key for oracle virtualbox
+  apt_key:
+    url: '{{ vbox_key_url }}'
+    state: present
+  become: yes
+
+- name: Install virtualbox-5.0
+  apt:
+    pkg: virtualbox-5.0
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Adding user to virtualbox
+  user:
+    name: "{{ ansible_user }}"
+    groups: vboxusers
+    append: yes
+  become: yes
+
+- name: Install vagrant
+  apt:
+    pkg: vagrant
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Create checkbox_vagrant directory
+  file:
+    path: /home/{{ansible_user}}/check_vagrant
+    state: directory
+    mode: 0755
+
+- name: Create itrust_vagrant directory
+  file:
+    path: /home/{{ansible_user}}/itrust_vagrant
+    state: directory
+    mode: 0755
+
+- name: Copy checkbox vagrant template
+  template:
+    src: templates/check_vagrant_config
+    dest: /home/{{ansible_user}}/check_vagrant/Vagrantfile
+    owner: "{{ansible_user}}"
+    mode: "u=rw,g=r,o=r"
+
+- name: Copy vagrant template
+  template:
+    src: templates/itrust_vagrant_config
+    dest: /home/{{ansible_user}}/itrust_vagrant/Vagrantfile
+    owner: "{{ansible_user}}"
+    mode: "u=rw,g=r,o=r"

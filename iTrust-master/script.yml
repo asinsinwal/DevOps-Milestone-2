@@ -1,0 +1,24 @@
+---
+# This playbook deploys iTrust
+
+- name: Installing and configuring iTrust
+  become: yes
+  hosts: all
+  # vars_prompt:
+  #   - name: github_username
+  #     prompt: Please enter your github username
+  #     private: no
+  
+  #   - name: github_password
+  #     prompt: Please enter your github password
+  #     private: yes
+  gather_facts: no
+  pre_tasks:
+    - name: Install Python for Ansible
+      raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+      changed_when: False
+    - setup: # aka gather_facts
+  roles:
+    - trust
+
+  

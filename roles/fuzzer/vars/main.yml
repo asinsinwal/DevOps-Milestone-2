@@ -1,0 +1,2 @@
+---
+fuzzer_location: /home/{{ansible_ssh_user}}/

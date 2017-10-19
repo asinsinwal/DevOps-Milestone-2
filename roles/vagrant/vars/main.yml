@@ -1,0 +1,5 @@
+base_packages:
+  - build-essential
+  - dkms
+vbox_download_path: 'deb http://download.virtualbox.org/virtualbox/debian xenial contrib'
+vbox_key_url: 'https://www.virtualbox.org/download/oracle_vbox_2016.asc'

@@ -1,0 +1,41 @@
+- name: Run fuzzer {{item}}  #item will be taken from main.yml which runs this fuzzer with a sequence of numbers from 1 to n
+  command: nodejs main.js {{jenkins_itrust_workspace}}/iTrust/src/main
+  args:
+    chdir: /home/{{ansible_ssh_user}}/Fuzzer/
+  become: yes
+
+- name: Commit {{item}}
+  command: git commit -a -m "Fuzz commit {{item}}"
+  register: commit_output
+  args:
+    chdir: "{{jenkins_itrust_workspace}}"
+  become: yes
+  failed_when: ((commit_output.rc != 0) and (commit_output.stderr != "")) 
+  #This task will fail only when stderr is not null. For eg. user.email not set
+
+# Pause for 10 seconds for build to be triggered
+- name: Wait for jenkins build to get triggered {{item}}
+  pause:
+    seconds: 10
+  when: commit_output.stderr.find('Scheduled polling of {{jenkins_build_jobs[1].name}}') != -1 
+  #Pause only when commit triggers a build and not when there is nothing to commit.
+
+- name: Wait for Jenkins job to finish {{item}}
+  uri: 
+    url: http://{{ jenkins_hostname }}:{{ jenkins_http_port }}/job/{{jenkins_build_jobs[1].name}}/lastBuild/api/json
+  register: build_status
+  until: build_status.json.result
+  retries: 100
+  delay: 5
+
+- name: Run Useless Test Detector
+  command: nodejs analyze_tests.js /var/lib/jenkins/workspace/Itrust/iTrust/target/surefire-reports/
+  args:
+    chdir: "{{fuzzer_location}}/Fuzzer/"
+
+- name: Revert latest {{item}}
+  command: git reset --hard HEAD~1
+  args:
+    chdir: "{{jenkins_itrust_workspace}}"
+  become: yes
+  when: commit_output.stderr.find('Scheduled polling of {{jenkins_build_jobs[1].name}}') != -1

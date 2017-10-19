@@ -1,0 +1,151 @@
+---
+
+# Gather variables
+- include_vars: "{{ item }}"
+  with_first_found:
+    - "../vars/{{ ansible_distribution }}.yml"
+    - "../vars/{{ ansible_os_family }}.yml"
+    - "../vars/default.yml"
+- include_vars: "../vars/common.yml"
+- include_vars: "../vars/Debian.yml"
+- include_vars: "../vars/RedHat.yml"
+
+# Including Pre-requisites
+- name: Pre-req required for Ansible
+  become: yes
+  package: name={{ item }} state=latest
+  with_items:
+    - "{{ git_package }}"
+    - "{{ selinux_python_package }}"
+
+- name: Install git
+  apt: pkg=git state=present
+  become: yes
+
+# Installing Packages
+- name: Install Java jdk
+  apt: pkg=openjdk-8-jdk state=present
+  become: yes
+
+- name: update alternatives
+  shell: sudo update-alternatives --config java
+  become: yes
+    
+- name: update alternatives
+  shell: sudo update-alternatives --config javac
+  become: yes
+
+- name: Update the list
+  command: apt-get update
+  become: yes
+
+- name: Install dependencies - packages
+  become: yes
+  package: name={{ item }} state=latest
+  with_items:
+    - "{{ eclipse_package }}"
+    - "{{ maven_package }}"
+  #  - "{{ mysql_package }}"
+
+- name: Mysql | Set root password
+  debconf: name='mysql-server' question='mysql-server/root_password' value='' vtype='password'
+
+- name: Mysql | Set root repassword
+  debconf: name='mysql-server' question='mysql-server/root_password_again' value='' vtype='password'
+
+- name: Installing mysql
+  become: yes
+  apt: name={{ item }} state=present
+  with_items:
+    - python-mysqldb
+    - mysql-server
+
+- name: Enable MySQL with table names - lowercase
+  become: yes
+  ini_file: >
+    dest=/etc/my.cnf
+    section=mysqld
+    option=lower_case_table_names
+    value=1
+    backup=yes
+
+
+- name: update package manager
+  apt:
+    update_cache: yes
+
+- name: Starting mysql service
+  become: yes
+  service:
+    name: mysql
+    state: started
+    enabled: true
+
+# Tomcat server
+- name: Creating group for tomcat
+  group: name=tomcat
+  become: yes
+
+- name: Adding user to group
+  user: name=tomcat group=tomcat home=/usr/share/tomcat createhome=no
+  become: yes
+  become_method: sudo
+
+- name: Downloading tomcat
+  get_url: url=http://archive.apache.org/dist/tomcat/tomcat-9/v9.0.0.M17/bin/apache-tomcat-9.0.0.M17.tar.gz dest=/opt/apache-tomcat-9.0.0.M17.tar.gz
+
+- name: Extracting archive
+  command: chdir=/usr/share /bin/tar xvf /opt/apache-tomcat-9.0.0.M17.tar.gz -C /opt/ creates=/opt/apache-tomcat-9.0.0.M17
+
+- name: Symlink install directory
+  file: src=/opt/apache-tomcat-9.0.0.M17 path=/usr/share/tomcat state=link
+
+- name: Changing ownership of Tomcat installation
+  file: path=/usr/share/tomcat/ owner=tomcat group=tomcat state=directory recurse=yes
+
+- name: Installing tomcat initiatlization script
+  copy: src=tomcat.sh dest=/etc/init.d/tomcat mode=0755
+
+- name: Doing the same thing with etc/systemd
+  copy: src=tomcat.sh dest=/etc/systemd/system/tomcat mode=0755 
+
+# - name: Configure Tomcat server
+#   template: src=server.xml dest=/usr/share/tomcat/conf/
+#   notify: restart tomcat
+
+- name: Configure Tomcat users
+  template: src=tomcat-users.xml dest=/usr/share/tomcat/conf/
+  notify: restart tomcat
+
+# - name: Editing the context.xml
+#   lineinfile:
+#     dest: /usr/share/tomcat/webapps/manager/META-INF/context.xml
+#     insertafter: '<Context antiResourceLocking="false" privileged="true" >'
+#     line: '<!--'
+#     state: present
+    
+# - name: Editing the context.xml
+#   lineinfile:
+#     dest: /usr/share/tomcat/webapps/manager/META-INF/context.xml
+#     insertbefore: '</Context>'
+#     line: '-->'
+#     state: present
+
+- name: Start Tomcat
+  service: name=tomcat state=started enabled=yes
+
+- name: Wait_for module used to wait for tomcat to start
+  wait_for: 
+    port=8080
+    timeout=300
+
+- name: Editing maven credentials to add tomcat username and password
+  copy: src=settings.xml dest=/usr/share/maven/conf mode=0644
+
+- name: Restart MySQL service
+  service: name=mysql state=restarted
+
+- name: Maven package
+  become_user: root
+  script: maven.sh
+# - include: configure_eclipse.yml

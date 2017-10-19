@@ -1,0 +1,58 @@
+- name: Provision a Jenkins CI server with Checkbox.io and Itrust
+  hosts: all
+
+  vars_prompt:
+  - name: git_username
+    prompt: Please enter your github username
+    private: no
+    default: onjoshi #TODO Remove default value
+
+  - name: git_password
+    prompt: Please enter your github password
+    private: yes
+    default: Diebold@123 #TODO Remove default value
+
+  gather_facts: no
+  pre_tasks:
+    - name: Install Python for Ansible
+      raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+      changed_when: False
+      become: yes
+    - setup: # aka gather_facts
+
+  # pre_tasks:
+  #   - name: Install Python for Ansible
+  #     raw: (apt -y update && apt install -y python-minimal)
+  #     changed_when: False
+  #     become: yes
+  #   - setup: # aka gather_facts
+
+  vars:
+    jenkins_init_file: /etc/default/jenkins
+    jenkins_http_port_param: HTTP_PORT
+    jenkins_java_options_env_var: JAVA_ARGS
+    jenkins_hostname: 192.168.33.30
+    #  jenkins_hostname: "{{ansible_all_ipv4_addresses[0]}}"
+    jenkins_http_port: 8080
+    jenkins_jar_location: /opt/jenkins-cli.jar
+
+    jenkins_build_jobs:
+    - name: "Checkbox"
+      xml_name: "checkbox_template.xml"
+    - name: "Itrust"
+      xml_name: "itrust_template.xml"
+
+    jenkins_itrust_workspace: /var/lib/jenkins/jobs/{{jenkins_build_jobs[1].name}}/workspace/
+
+  roles:
+    # - jenkins
+    # - vagrant
+    # - ansible
+    - itrust
+    - fuzzer
+
+  # tasks:
+
+  # - name: Trigger Build Jobs
+  #   shell: "java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }}  build {{ item.name }}"
+  #   with_items: "{{jenkins_build_jobs}}"

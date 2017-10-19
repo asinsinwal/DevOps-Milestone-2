@@ -1,0 +1,13 @@
+git_host: github.ncsu.edu
+#itrust_repo: git@github.ncsu.edu:engr-csc326-staff/iTrust-v21.git
+itrust_repo: git@github.ncsu.edu/assinsin/iTrust-v23.git
+repo_name: iTrust-v21
+
+
+eclipse_workspace: /home/ubuntu/code
+code_directory: /home/{{ ansible_user_id }}/code/itrust
+
+tomcat_url: http://archive.apache.org/dist/tomcat/tomcat-9/v9.0.0.M17/bin/apache-tomcat-9.0.0.M17.tar.gz
+tomcat_version: 9.0.0
+jdbc_url: http://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-5.1.38.zip
+jdbc_version: 5.1.38

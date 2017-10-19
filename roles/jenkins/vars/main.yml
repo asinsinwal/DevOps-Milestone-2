@@ -1,0 +1,17 @@
+---
+jenkins_home: /var/lib/jenkins
+jenkins_url_prefix: ""
+jenkins_java_options: "-Djenkins.install.runSetupWizard=false"
+
+jenkins_initialization_options:
+  - option: "JENKINS_ARGS"
+    value: "--prefix={{ jenkins_url_prefix }}"
+  - option: "{{ jenkins_java_options_env_var }}"
+    value: "{{ jenkins_java_options }}"
+
+# jenkins_init_file: /etc/default/jenkins
+
+jenkins_credential_data:
+    name: "credential_id"
+    jinja_name: "credential.j2"
+    xml_name: "git_credentials.xml"

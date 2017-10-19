@@ -1,0 +1,42 @@
+---
+- name: Modify variables in init file
+  lineinfile:
+    dest: "{{ jenkins_init_file }}"
+    insertafter: '^{{ item.option }}='
+    regexp: '^{{ item.option}}=\"\${{ item.option }} '
+    line: '{{ item.option }}="${{ item.option }} {{ item.value }}"'
+    state: present
+  with_items:
+      "{{ jenkins_initialization_options }}"
+  register: jenkins_init_changes
+
+- name: Set the Jenkins home directory
+  lineinfile:
+    dest: "{{ jenkins_init_file }}"
+    regexp: '^JENKINS_HOME=.*'
+    line: 'JENKINS_HOME={{ jenkins_home }}'
+  register: jenkins_home_config
+
+- name: Restart Jenkins
+  service: name=jenkins state=restarted
+  when: jenkins_init_changes.changed
+
+- name: Set HTTP port.
+  lineinfile:
+    backrefs: yes
+    dest: "{{ jenkins_init_file }}"
+    regexp: '^{{ jenkins_http_port_param }}='
+    line: '{{ jenkins_http_port_param }}={{ jenkins_http_port }}'
+  register: jenkins_http_config
+
+- name: Ensure jenkins_home exists
+  file:
+    path: "{{ jenkins_home }}"
+    state: directory
+    owner: jenkins
+    group: jenkins
+    mode: u+rwx
+
+- name: Restart Jenkins.
+  service: name=jenkins state=restarted
+  when: (jenkins_http_config.changed) or (jenkins_home_config.changed)

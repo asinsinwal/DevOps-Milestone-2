@@ -1,0 +1,167 @@
+---
+- hosts: all
+  gather_facts: yes
+  become: true
+
+
+  handlers:
+  - name: start mongodb service
+    service: name=mongodb state=started
+
+  vars:
+    git_repo: https://github.com/kulkarnisneha/checkbox.io.git
+    home_path: /home/ubuntu
+    nginx_sites_path: /etc/nginx/sites-enabled/default
+    nginx_config_path: /etc/nginx/nginx.conf
+    env_vars:
+      MONGO_PORT: "3002"
+      MONGO_IP: "localhost"
+      MONGO_USER: "admin"
+      MONGO_PASSWORD: "admin"
+      MAIL_USER: "skkulkar"
+      MAIL_PASSWORD: "pass123"
+      MAIL_SMTP: "smtp.gmail.com"
+
+
+  tasks:
+    - name: Install the dependencies
+      apt: name={{item}} state=installed
+      with_items:
+       - git
+
+    - name: Ensure the system can use the HTTPS transport for APT
+      stat: path=/usr/lib/apt/methods/https
+      register: apt_https_transport
+
+    - name: Install HTTPS transport for APT
+      become: yes
+      apt: pkg=apt-transport-https state=installed
+      when: not apt_https_transport.stat.exists
+
+    - name: Import the NodeSource GPG key into apt
+      become: yes
+      apt_key: >
+        id=68576280
+        url="https://keyserver.ubuntu.com/pks/lookup?op=get&fingerprint=on&search=0x1655A0AB68576280"
+        validate_certs=False
+
+    - name: Add NodeSource deb repository
+      become: yes
+      apt_repository: repo='deb https://deb.nodesource.com/node_6.x {{ ansible_distribution_release }} main' state=present
+
+    - name: Install Node.js
+      become: yes
+      apt: pkg=nodejs state=installed update_cache=yes
+
+
+    - name: Add an apt key by id from a keyserver
+      apt_key:
+        keyserver: hkp://keyserver.ubuntu.com:80
+        id: 7F0CEB10
+
+
+    - name: Add mongodb repository
+      #become: yes
+      apt_repository:
+        repo: deb http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.0 multiverse
+
+    - name: force all notified handlers to run at this point, not waiting for normal sync points
+      meta: flush_handlers
+
+    - name: Install mongodb
+      #become: yes
+      apt:
+        pkg: mongodb
+        state: latest
+        update_cache: yes
+      notify:
+      - start mongodb service
+
+    - name: Update and upgrade apt packages
+      become: true
+      apt: upgrade=no update_cache=yes
+      register: upgrade_status
+
+
+    - name: create a unit file to manage the MongoDB service.
+      become: true
+      template: src=/home/vagrant/mongodb_service_template dest=/etc/systemd/system/mongodb.service mode=0755
+
+
+    - name: Installing Python-Pip
+      apt:
+        pkg: python-pip
+        state: latest
+
+    - name: Install the latest pymongo package
+      pip: name=pymongo state=latest use_mirrors=no
+
+
+    - name: Install nginx
+      become: yes
+      apt:
+        pkg: nginx
+        state: latest
+        update_cache: yes
+
+
+    - name: Cloning repository
+      git:
+        repo: "https://github.com/kulkarnisneha/checkbox.io.git"
+        dest: "/home/ubuntu/checkbox.io"
+
+
+    - name: Create mongodb Database and User
+      mongodb_user:
+        database: admin
+        name: "{{env_vars.MONGO_USER}}"
+        password: "{{env_vars.MONGO_PASSWORD}}"
+        state: present
+        roles: readWrite,dbAdmin,userAdmin
+
+    - name: NPM Install
+      become: yes
+      npm:
+        path: "/home/ubuntu/checkbox.io/server-side/site"
+
+    - name: Installing forever.js
+      npm:
+        name: forever
+        global: yes
+        state: present
+
+    - name: Get list of Node.js apps running
+      become: no
+      command: forever list
+      register: forever_list
+      changed_when: false
+
+    - name: Start checkbox api server application
+      become: no
+      shell: forever start server.js
+      args:
+        chdir: "/home/ubuntu/checkbox.io/server-side/site/"
+      environment: "{{env_vars}}"
+      when: "forever_list.stdout.find('server.js') == -1"
+
+    - name: update nginx config file
+      blockinfile:
+        dest: "{{nginx_config_path}}"
+        insertbefore: "sendfile on;"
+        block: "upstream app_nodejs_design {
+        server 127.0.0.1:3002;
+      }"
+
+
+    - name: Replacing the site-enable config
+      template:
+        force: yes
+        src: "/home/vagrant/default.j2"
+        dest: "/etc/nginx/sites-enabled/default"
+        mode: 0700
+
+
+    - service:
+        name: nginx
+        state: restarted
+
