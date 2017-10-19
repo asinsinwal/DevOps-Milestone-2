@@ -5,12 +5,10 @@
   - name: git_username
     prompt: Please enter your github username
     private: no
-    default: onjoshi #TODO Remove default value
 
   - name: git_password
     prompt: Please enter your github password
     private: yes
-    default: Diebold@123 #TODO Remove default value
 
   gather_facts: no
   pre_tasks:

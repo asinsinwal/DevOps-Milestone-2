@@ -1,4 +1,4 @@
-# CSC-519-DevOps-Project-Milestone I
+# CSC-519-DevOps-Project-Milestone II
 
 ## Team Details:
 
