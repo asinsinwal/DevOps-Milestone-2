@@ -88,6 +88,9 @@
   delay: 10
   check_mode: no
 
+- stat: path=/etc/temp.conf
+  register: file_path
+
 - name: Install jenkins plugin
   jenkins_plugin:
     name: "{{item}}"
@@ -96,7 +99,12 @@
     - nodejs
     - jacoco
     - postbuild-task
+  when: file_path.stat.exists == false
   register: plugin_installation
+
+#Create a temp file, which notifies if plugins were installed
+- name: Create a new file
+  file: path=/etc/temp.conf state=touch
 
 - name: restart jenkins
   service: name=jenkins state=restarted
