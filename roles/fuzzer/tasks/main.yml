@@ -1,6 +1,6 @@
 - name: Copy fuzzer javascript tool to remote
   copy:
-    src: /vagrant_data/Fuzzer
+    src: "{{fuzzer_source}}"
     dest: "{{fuzzer_location}}"
     directory_mode: '0777'
 

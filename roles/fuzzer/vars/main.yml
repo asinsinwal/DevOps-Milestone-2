@@ -1,2 +1,3 @@
 ---
 fuzzer_location: /home/{{ansible_ssh_user}}/
+fuzzer_source: /home/vagrant_data/DevOps_M2/Fuzzer

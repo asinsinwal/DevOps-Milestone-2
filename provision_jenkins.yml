@@ -29,8 +29,7 @@
     jenkins_init_file: /etc/default/jenkins
     jenkins_http_port_param: HTTP_PORT
     jenkins_java_options_env_var: JAVA_ARGS
-    jenkins_hostname: 192.168.33.30
-    #  jenkins_hostname: "{{ansible_all_ipv4_addresses[0]}}"
+    jenkins_hostname: "{{ansible_all_ipv4_addresses[0]}}"
     jenkins_http_port: 8080
     jenkins_jar_location: /opt/jenkins-cli.jar
 
@@ -43,14 +42,6 @@
     jenkins_itrust_workspace: /var/lib/jenkins/jobs/{{jenkins_build_jobs[1].name}}/workspace/
 
   roles:
-    # - jenkins
-    # - vagrant
-    # - ansible
-    - itrust
-    - fuzzer
-
-  # tasks:
-
-  # - name: Trigger Build Jobs
-  #   shell: "java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }}  build {{ item.name }}"
-  #   with_items: "{{jenkins_build_jobs}}"
+    - jenkins
+    # - itrust
+    # - fuzzer
