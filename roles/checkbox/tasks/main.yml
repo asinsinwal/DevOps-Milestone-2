@@ -1,0 +1,24 @@
+  - name: Run the equivalent of "apt-get update" as a separate step
+    sudo: yes
+    apt: update_cache=yes
+  
+  - name: Install Nodejs
+    sudo: yes
+    apt: name=nodejs state=present
+
+#Checkbox Analyzer  
+  - name: Copy Checkbox sites javascripts to remote
+    copy:
+      src: "{{checkbox_source}}"
+      dest: "{{checkbox_location}}"
+      directory_mode: '0777'
+
+  - name : npm install
+    shell: npm install
+    args:
+      chdir: /var/lib/jenkins/workspace/CheckboxAnalyzer/
+
+  - name : npm install
+    shell: npm install
+    args:
+      chdir: /var/lib/jenkins/workspace/Checkbox/server-side/site/

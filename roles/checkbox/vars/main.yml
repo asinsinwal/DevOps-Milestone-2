@@ -1,0 +1,3 @@
+---
+checkbox_location: /var/lib/jenkins/workspace/
+checkbox_source: /home/vagrant_data/DevOps_M2/CheckboxAnalyzer
