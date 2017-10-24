@@ -9,7 +9,7 @@ function main()
 
 	if( args.length == 0 )
 	{
-		args = ["C:/Omkar/NCSU/DevOps/Project/Milestone2/CheckboxAnalyzer/checkbox.io/server-side/"];
+		args = ["/Users/a_sinsinwal/TempGit/checkbox.io/server-side/"];
 		// args = ['CheckboxAnalyzer/analysis.js']
 	}
 	var filePath = args[0];
@@ -176,6 +176,23 @@ function analyze(filePath)
 					builder.MaxConditions += 1;
 				}
 
+				if(isLoop(function_body)){
+					traverseWithParents(function_body.body, function(level2_loop){
+						if(isLoop(level2_loop)){
+							traverseWithParents(level2_loop.body, function(level3_loop){
+								if(isLoop(level3_loop)){
+									builder.BigOMoreThanThree = true;
+									traverseWithParents(level3_loop.body, function(level4_loop){
+										if(isLoop(level4_loop)){
+											builder.BigOMoreThanThree = true;
+										}
+									});	
+								}
+							});
+						}
+					});
+				}
+
 				if (function_body.type === 'CallExpression') 
 				{
 					if (function_body.callee.property && function_body.callee.property.name.indexOf('Sync') != -1)
@@ -251,6 +268,18 @@ function isDecision(node)
 	}
 	return false;
 }
+
+// Looping Conditon
+function isLoop(node)
+{
+	if( node.type == 'ForStatement' || node.type == 'WhileStatement' ||
+		 node.type == 'ForInStatement' || node.type == 'DoWhileStatement')
+	{
+		return true;
+	}
+	return false;
+}
+
 
 // Helper function for printing out function name.
 function functionName( node )
