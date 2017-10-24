@@ -2,6 +2,7 @@ var esprima = require("esprima");
 var options = {tokens:true, tolerant: true, loc: true, range: true };
 var fs = require("fs");
 var recursive = require("recursive-readdir");
+var path = require('path');
 
 function main()
 {
@@ -13,9 +14,16 @@ function main()
 		// args = ['CheckboxAnalyzer/analysis.js']
 	}
 	var filePath = args[0];
+
+	//ignore node_modules
+	function ignoreFunc(file, stats) {
+		// `file` is the absolute path to the file, and `stats` is an `fs.Stats`
+		// object returned from `fs.lstat()`.
+		return stats.isDirectory() && path.basename(file) == "node_modules";
+	  }
 	
 	// analyze(filePath);
-	recursive(filePath, function(err, files){
+	recursive(filePath, [ignoreFunc], function(err, files){
         if (err){
             console.error("Could not retrieve files from : "+filePath, err);
         }
@@ -93,7 +101,12 @@ function FunctionBuilder()
 			.format(this.FunctionName, this.FileName,
 				    this.MoreThanOneSyncCalls, this.LongMethod, this.LongMessageChains, this.BigOMoreThanThree)
 		);
+
+		if(this.BigOMoreThanThree || this.MoreThanOneSyncCalls || this.LongMessageChains || this.LongMethod){
+			process.exit(10);
+		}
 	}
+
 };
 
 // A builder for storing file level information.

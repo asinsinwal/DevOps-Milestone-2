@@ -5,11 +5,8 @@
 - name: Adding openjdk 8 to sources
   apt_repository:
     repo: ppa:openjdk-r/ppa
+    update_cache: yes
     state: present
-
-# 2. Updating apt-get
-- name: Run the equivalent of "apt-get update" as a separate step
-  apt: update_cache=yes
 
 # 3. Install Java
 - name: Install Java jdk
@@ -54,6 +51,7 @@
     option=lower_case_table_names
     value=1
     backup=yes
+  register: ini
 
 # 7. Restarting the mysql service
 - name: Restarting mysql service
@@ -61,7 +59,7 @@
   service:
     name: mysql
     state: restarted
-  when: mysql_installation.changed
+  when: mysql_installation.changed or ini.changed
 
 # # 8. Call script
 # - name: Maven package

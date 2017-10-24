@@ -1,3 +1,3 @@
 ---
-checkbox_location: /var/lib/jenkins/workspace/
-checkbox_source: /home/vagrant_data/DevOps_M2/CheckboxAnalyzer
+checkbox_location: /home/{{ansible_ssh_user}}/
+checkbox_source: /vagrant_data/DevOps_M2/CheckboxAnalyzer

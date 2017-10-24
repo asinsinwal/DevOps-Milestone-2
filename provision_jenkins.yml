@@ -35,7 +35,7 @@
 
     jenkins_build_jobs:
     - name: "Checkbox"
-      xml_name: "checkbox_template.xml"
+      xml_name: "checkbox_template.xml.j2"
     - name: "Itrust"
       xml_name: "itrust_template.xml"
 
@@ -43,10 +43,6 @@
 
   roles:
     - jenkins
-    # - itrust
-    # - fuzzer
+    - itrust
     - checkbox
-
-  # tasks:
-  #   - name: Trigger Build Jobs
-  #     hell: "java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }}  build Checkbox"
+    - fuzzer
