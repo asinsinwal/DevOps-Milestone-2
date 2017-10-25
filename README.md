@@ -16,9 +16,12 @@
 3. The ansible script for automating the build and perform test for iTrust is contained in the file [provision_iTrust.yml](https://github.ncsu.edu/onjoshi/DevOps_M2/blob/master/roles/itrust/tasks/main.yml)
 
 ## Task 1 - Test suites, coverage, and test results:
+We have extended the build definitions of ITrust to report code coverage and test results:- 
 #### Coverage Screenshot
+For code coverage we have used **_jacoco_** plugin
 ![ScreenShot_Coverage](https://github.ncsu.edu/onjoshi/DevOps_M2/blob/master/Screenshots/Itrust_Code_Coverage.png)
 #### Test Results Screenshot
+For unit tests we have used **_Junit_** plugin
 ![ScreenShot_TestResults](https://github.ncsu.edu/onjoshi/DevOps_M2/blob/master/Screenshots/Itrust_Test_Results.png)
 
 ## Task 2 - Commit fuzzer:
@@ -28,7 +31,8 @@ For Fuzzer code file - [Click Here](https://github.ncsu.edu/onjoshi/DevOps_M2/bl
 
 ## Task 3 - Uselesss test detector:
 For Detector code file - [Click Here](https://github.ncsu.edu/onjoshi/DevOps_M2/blob/master/Fuzzer/analyze_tests.js)
-![Useless_Test]()
+#### Useless Test Cases (Count 505)
+Look into file for all useless tests - [Useless_Test_Text_File](https://github.ncsu.edu/onjoshi/DevOps_M2/blob/master/useless_tests.txt)
 
 
 ## Task 4 - Analysis and build failure:
@@ -40,25 +44,15 @@ Here is a link to our [screencast](https://drive.google.com/open?id=0B3MiIrLYZHU
 
 ## Experiences and issues faced while setting up the system:
 
-* Credentials for iTrust: 
-iTrust requires credentials to even clone the repository. We had to handle this issue separately because we could not put these in any of the files either. Thus, we had to take the credentials through an appropriate channel and handle all the files accordingly.Since, there is no module readily avaialble to carry out these tasks, this was a major issue that took considerable amount of time to solve.
+* We first took ITrust and developed the fuzzer test, where we faces issues while executing the post build command.
+  According to the build results, we could see that test cases got passed, failed and skipped due to errors. It was difficult to debug through the errors part, as it shouldn't occur in the ideal case.
 
-* iTrust has too many dependencies. This required significant amount of research and we invested time in setting up the   dependencies appropriately.
+* We checked the regex for commits part, where we found out that the "STRING" values that we changed, were actually making the test cases skip. Reason is that mandatory variables needed for a test case to perform, were made void in the commits.
 
-* The iTrust documentation has been written in such a way that it is from an end user's perspective, rather than of being of much help to a developer. Thus, we had to find command line modules for all the functionalities.
-
-* There is not enough documentation for hosting a virtual machine inside another virtual machine. This was an obstacle too.
-
-* Since we are hosting a Virtual Machine within a Virtual Machine, we face memory provisioning issues as well.
-
-* Different version of Ubuntu have different requirements. We had to modify ansible scripts accordingly to handle the issues faced due to this.
-
-* Making all the ansible tasks idempotent was a big challenge as a lot of tasks required executing direct shell commands. We have thus, put in efforts to ensure that our tasks are idempotent as far as possible by avoiding using modules like the shell module and so on.
-
+* We modified 'analysis.js' in Checkbox Analyzer, where we pushed the process to exit(10), which made our jenkins build fail.
 
 
 ## Contribution:
-
 
 | Team Member                                                                        | Performed By           | 
 | -----------------------------------------------------------------------------------|:----------------------:| 
