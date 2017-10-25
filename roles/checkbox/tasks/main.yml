@@ -1,3 +1,7 @@
+  - name: Install Nodejs
+    sudo: yes
+    apt: name=nodejs state=present
+
 #Checkbox Analyzer  
   - name: Copy Checkbox sites javascripts to remote
     copy:
