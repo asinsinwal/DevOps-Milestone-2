@@ -4,7 +4,6 @@
 
 | Team Member             | Unity ID      | 
 | ------------------------|:-------------:| 
-| Rahul Daga              | rndaga        | 
 | Omkar Joshi             | onjoshi       |  
 | Animesh Sinsinwal       | assinsin      |   
 | Sneha Kulkarni          | skkulkar      |
@@ -12,13 +11,31 @@
 
 
 ## Ansible Scripts:
-1. Driver script which installs Jenkins, creates and triggers build jobs for Checkbox.io and iTrust. [provision_jenkins.yml](https://github.ncsu.edu/onjoshi/DevOps_M1/blob/master/provision_jenkins.yml) 
-2. The ansible script for deploying Checkbox.io on Ubuntu 14.04 server is contained in the file [provision_checkbox.yml]()
-3. The ansible script for deploying iTrust is contained in the file [provision_iTrust.yml]()
+1. Driver script which installs Jenkins, creates and triggers build jobs for Checkbox.io and iTrust. [provision_jenkins.yml](https://github.ncsu.edu/onjoshi/DevOps_M2/blob/master/provision_jenkins.yml) 
+2. The ansible script for automating the build and perform test for Checkbox.io is contained in the file [provision_checkbox.yml](https://github.ncsu.edu/onjoshi/DevOps_M2/blob/master/roles/checkbox/tasks/main.yml)
+3. The ansible script for automating the build and perform test for iTrust is contained in the file [provision_iTrust.yml](https://github.ncsu.edu/onjoshi/DevOps_M2/blob/master/roles/itrust/tasks/main.yml)
 
-## Screencast:
+## Task 1 - Test suites, coverage, and test results:
+#### Coverage Screenshot
+![ScreenShot_Coverage](https://github.ncsu.edu/onjoshi/DevOps_M2/blob/master/Screenshots/Itrust_Code_Coverage.png)
+#### Test Results Screenshot
+![ScreenShot_TestResults](https://github.ncsu.edu/onjoshi/DevOps_M2/blob/master/Screenshots/Itrust_Test_Results.png)
 
-Here is a link to our [screencast]()
+## Task 2 - Commit fuzzer:
+For Fuzzer code file - [Click Here](https://github.ncsu.edu/onjoshi/DevOps_M2/blob/master/Fuzzer/main.js)
+#### 100 Commits Screenshot
+![Commit_Fuzzer](https://github.ncsu.edu/onjoshi/DevOps_M2/blob/master/Screenshots/Itrust_Summary.png)
+
+## Task 3 - Uselesss test detector:
+For Detector code file - [Click Here](https://github.ncsu.edu/onjoshi/DevOps_M2/blob/master/Fuzzer/analyze_tests.js)
+![Useless_Test]()
+
+
+## Task 4 - Analysis and build failure:
+![Build_Failure](https://github.ncsu.edu/onjoshi/DevOps_M2/blob/master/Screenshots/Checkbox_Build_Output.png)
+
+## Task 5 - Screencast:
+Here is a link to our [screencast](https://drive.google.com/open?id=0B3MiIrLYZHU5RTJ5a1AxOEZjZWs)
 
 
 ## Experiences and issues faced while setting up the system:
@@ -45,9 +62,8 @@ iTrust requires credentials to even clone the repository. We had to handle this 
 
 | Team Member                                                                        | Performed By           | 
 | -----------------------------------------------------------------------------------|:----------------------:| 
-| 1. Ansible scripts for Checkbox.io deployment                                      | Sneha Kulkarni         | 
-| 2. Ansible scripts for iTrust deployment                                           | Animesh Sinsinwal      |  
-| 3. Jenkins automation upto post-build action                                       | Omkar Joshi            |   
-| 4. Jenkins automation post-build action onwards, setting up a VM inside a VM       | Rahul Daga             |
+| 1. Ansible scripts and Jenkins Build Test for Checkbox.io                          | Animesh Sinsinwal      | 
+| 2. Ansible scripts and Jenkins Build / Fuzzer for iTrust                           | Omkar Joshi            |  
+| 3. Jenkins automation upto post-build action and integration                       | Sneha Kulkarni         | 
 
 
