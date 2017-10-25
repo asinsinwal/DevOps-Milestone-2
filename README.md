@@ -21,6 +21,7 @@
 #### Test Results Screenshot
 ![ScreenShot_TestResults](https://github.ncsu.edu/onjoshi/DevOps_M2/blob/master/Screenshots/Itrust_Test_Results.png)
 
+<<<<<<< HEAD
 ## Task 2 - Commit fuzzer:
 For Fuzzer code file - [Click Here](https://github.ncsu.edu/onjoshi/DevOps_M2/blob/master/Fuzzer/main.js)
 #### 100 Commits Screenshot
@@ -36,6 +37,9 @@ For Detector code file - [Click Here](https://github.ncsu.edu/onjoshi/DevOps_M2/
 
 ## Task 5 - Screencast:
 Here is a link to our [screencast]()
+=======
+Here is a link to our [screencast](https://drive.google.com/open?id=0B3MiIrLYZHU5RTJ5a1AxOEZjZWs)
+>>>>>>> 7f200eba7e8f2c1b60111ac5960ff7aa2946296f
 
 
 ## Experiences and issues faced while setting up the system:

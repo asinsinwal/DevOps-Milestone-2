@@ -1,11 +1,3 @@
-  - name: Run the equivalent of "apt-get update" as a separate step
-    sudo: yes
-    apt: update_cache=yes
-  
-  - name: Install Nodejs
-    sudo: yes
-    apt: name=nodejs state=present
-
 #Checkbox Analyzer  
   - name: Copy Checkbox sites javascripts to remote
     copy:
@@ -16,9 +8,7 @@
   - name : npm install
     shell: npm install
     args:
-      chdir: /var/lib/jenkins/workspace/CheckboxAnalyzer/
+      chdir: /home/{{ansible_ssh_user}}/CheckboxAnalyzer/
 
-  - name : npm install
-    shell: npm install
-    args:
-      chdir: /var/lib/jenkins/workspace/Checkbox/server-side/site/
+  - name: Trigger Build Jobs
+    shell: "java -jar {{ jenkins_jar_location }} -s http://{{ jenkins_hostname }}:{{ jenkins_http_port }}  build Checkbox"

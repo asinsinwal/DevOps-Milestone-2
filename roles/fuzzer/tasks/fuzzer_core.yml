@@ -25,7 +25,7 @@
     url: http://{{ jenkins_hostname }}:{{ jenkins_http_port }}/job/{{jenkins_build_jobs[1].name}}/lastBuild/api/json
   register: build_status
   until: build_status.json.result
-  retries: 100
+  retries: 200
   delay: 5
 
 - name: Run Useless Test Detector
@@ -38,4 +38,4 @@
   args:
     chdir: "{{jenkins_itrust_workspace}}"
   become: yes
-  when: commit_output.stderr.find('Scheduled polling of {{jenkins_build_jobs[1].name}}') != -1
+  when: commit_output.stderr.find('Scheduled polling of Itrust') != -1

@@ -4,7 +4,7 @@
   <description></description>
   <keepDependencies>false</keepDependencies>
   <properties/>
-  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.5.1">
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.6.2">
     <configVersion>2</configVersion>
     <userRemoteConfigs>
       <hudson.plugins.git.UserRemoteConfig>
@@ -27,6 +27,9 @@
   <triggers/>
   <concurrentBuild>false</concurrentBuild>
   <builders>
+    <hudson.tasks.Shell>
+      <command>node /home/vagrant/CheckboxAnalyzer/analysis.js /var/lib/jenkins/workspace/Checkbox/server-side/site</command>
+    </hudson.tasks.Shell>
     <hudson.tasks.Shell>
       <command>cd server-side/site/
 npm install</command>
