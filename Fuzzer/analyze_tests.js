@@ -19,20 +19,26 @@ function main()
     }
 
     useless_tests_file =  "useless_tests.txt"
+    useless_tests_counter_file = "useless_tests_counter.txt"
 
     analyze(filePath, function(passed_testcases){
         if (!fs.existsSync(useless_tests_file)) {
             var testcaseString = passed_testcases.map(function(v){
                 return v}).join('\n');
             fs.writeFileSync(useless_tests_file, testcaseString);
+            fs.writeFileSync(useless_tests_counter_file, passed_testcases.length+"\n");
         }else{
             var useless_tests = fs.readFileSync(useless_tests_file).toString().split("\n");
             var newContent = "";
+            var count = 0;
             for(var i=0; i < useless_tests.length; i++) {
-                if (passed_testcases.indexOf(useless_tests[i]) != -1)
+                if (passed_testcases.indexOf(useless_tests[i]) != -1){
                     newContent+=useless_tests[i]+"\n"; //+ is better than concat in terms of speed.
+                    count += 1;
+                }
             }
             fs.writeFileSync(useless_tests_file, newContent);
+            fs.appendFileSync(useless_tests_counter_file, count+"\n");
         }
     });
     
